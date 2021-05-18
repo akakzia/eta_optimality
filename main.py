@@ -122,7 +122,7 @@ def main():
                         _, action, _ = agent.select_action(state, evaluate=True)
 
                         next_state, reward, done, _ = env.step(action)
-                    except TypeError:
+                    except:
                         _, action, _ = agent.select_action(torch.FloatTensor(state).unsqueeze(0), evaluate=True)
 
                         next_state, reward, done, _ = env.step(action)
