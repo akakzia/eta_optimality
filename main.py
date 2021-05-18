@@ -63,12 +63,13 @@ def main():
                 action_log_prob = None
             else:
                 value, action, action_log_prob = agent.select_action(state)
-            if len(memory) > args.batch_size and args.algo == "SAC":
-                # Number of updates per step in environment
-                for i in range(args.updates_per_step):
-                    # Update parameters of all the networks
-                    critic_1_loss, critic_2_loss, policy_loss, ent_loss, alpha = agent.update_parameters(memory, args.batch_size, updates)
-                    updates += 1
+            if args.algo == "SAC":
+                if len(memory) > args.batch_size:
+                    # Number of updates per step in environment
+                    for i in range(args.updates_per_step):
+                        # Update parameters of all the networks
+                        critic_1_loss, critic_2_loss, policy_loss, ent_loss, alpha = agent.update_parameters(memory, args.batch_size, updates)
+                        updates += 1
 
             # Environment Step
             next_state, reward, done, _ = env.step(action)
