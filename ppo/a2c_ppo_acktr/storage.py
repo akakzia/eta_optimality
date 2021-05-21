@@ -1,5 +1,6 @@
 import torch
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
+import numpy as np
 
 
 def _flatten_helper(T, N, _tensor):
@@ -8,7 +9,9 @@ def _flatten_helper(T, N, _tensor):
 
 class RolloutStorage(object):
     def __init__(self, num_steps, num_processes, obs_shape, action_space,
-                 recurrent_hidden_state_size):
+                 recurrent_hidden_state_size, eta_optimality=False, gamma_eta=1.):
+        self.use_eta_optimality = eta_optimality
+        self.gamma_eta = gamma_eta
         self.obs = torch.zeros(num_steps + 1, num_processes, *obs_shape)
         self.recurrent_hidden_states = torch.zeros(
             num_steps + 1, num_processes, recurrent_hidden_state_size)
@@ -119,11 +122,15 @@ class RolloutStorage(object):
                 "".format(num_processes, num_steps, num_processes * num_steps,
                           num_mini_batch))
             mini_batch_size = batch_size // num_mini_batch
+        # Random sampling
         sampler = BatchSampler(
             SubsetRandomSampler(range(batch_size)),
             mini_batch_size,
             drop_last=True)
         for indices in sampler:
+            if self.use_eta_optimality:
+                indices = [min(e + np.random.randint(1000 - e % 1000), self.num_steps - 1) for e in indices]
+                # indices = [e - np.random.randint(max(e % 1000, 1)) for e in indices]
             obs_batch = self.obs[:-1].view(-1, *self.obs.size()[2:])[indices]
             recurrent_hidden_states_batch = self.recurrent_hidden_states[:-1].view(
                 -1, self.recurrent_hidden_states.size(-1))[indices]

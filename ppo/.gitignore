@@ -1,6 +1,7 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 trained_models/
+logs/
 *.py[cod]
 *$py.class
 

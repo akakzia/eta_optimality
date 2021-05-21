@@ -18,6 +18,7 @@ from a2c_ppo_acktr.envs import make_vec_envs
 from a2c_ppo_acktr.model import Policy
 from a2c_ppo_acktr.storage import RolloutStorage
 from evaluation import evaluate
+import logger
 
 
 def main():
@@ -89,9 +90,30 @@ def main():
             shuffle=True,
             drop_last=drop_last)
 
+    logger.configure(dir=args.save_dir)
+
+    stats = dict()
+
+    stats['time steps'] = []
+    stats['updates'] = []
+    stats['FPS'] = []
+    stats['mean_reward'] = []
+    stats['median_reward'] = []
+    stats['max_reward'] = []
+    stats['min_reward'] = []
+
     rollouts = RolloutStorage(args.num_steps, args.num_processes,
                               envs.observation_space.shape, envs.action_space,
-                              actor_critic.recurrent_hidden_state_size)
+                              actor_critic.recurrent_hidden_state_size, args.eta_optimality, args.gamma_eta)
+
+    if args.eta_optimality:
+        save_path = os.path.join(args.save_dir, args.algo + '_eta_{}'.format(time.time()))
+    else:
+        save_path = os.path.join(args.save_dir, args.algo + '_{}'.format(time.time()))
+    try:
+        os.makedirs(save_path)
+    except OSError:
+        pass
 
     obs = envs.reset()
     rollouts.obs[0].copy_(obs)
@@ -165,28 +187,34 @@ def main():
         # save for every interval-th episode or for the last epoch
         if (j % args.save_interval == 0
                 or j == num_updates - 1) and args.save_dir != "":
-            save_path = os.path.join(args.save_dir, args.algo)
-            try:
-                os.makedirs(save_path)
-            except OSError:
-                pass
-
             torch.save([
                 actor_critic,
                 getattr(utils.get_vec_normalize(envs), 'obs_rms', None)
-            ], os.path.join(save_path, args.env_name + ".pt"))
+            ], os.path.join(save_path, args.env_name + "_{}.pt".format(j)))
 
         if j % args.log_interval == 0 and len(episode_rewards) > 1:
             total_num_steps = (j + 1) * args.num_processes * args.num_steps
             end = time.time()
-            print(
-                "Updates {}, num timesteps {}, FPS {} \n Last {} training episodes: mean/median reward {:.1f}/{:.1f}, min/max reward {:.1f}/{:.1f}\n"
-                .format(j, total_num_steps,
-                        int(total_num_steps / (end - start)),
-                        len(episode_rewards), np.mean(episode_rewards),
-                        np.median(episode_rewards), np.min(episode_rewards),
-                        np.max(episode_rewards), dist_entropy, value_loss,
-                        action_loss))
+            # print(
+            #     "Updates {}, num timesteps {}, FPS {} \n Last {} training episodes: mean/median reward {:.1f}/{:.1f}, min/max reward {:.1f}/{:.1f}\n"
+            #     .format(j, total_num_steps,
+            #             int(total_num_steps / (end - start)),
+            #             len(episode_rewards), np.mean(episode_rewards),
+            #             np.median(episode_rewards), np.min(episode_rewards),
+            #             np.max(episode_rewards), dist_entropy, value_loss,
+            #             action_loss))
+
+            stats['time steps'].append(total_num_steps)
+            stats['updates'].append(j)
+            stats['FPS'].append(end - start)
+            stats['mean_reward'].append(np.mean(episode_rewards))
+            stats['median_reward'].append(np.median(episode_rewards))
+            stats['max_reward'].append(np.max(episode_rewards))
+            stats['min_reward'].append(np.min(episode_rewards))
+
+            for k, l in stats.items():
+                logger.record_tabular(k, l[-1])
+            logger.dump_tabular()
 
         if (args.eval_interval is not None and len(episode_rewards) > 1
                 and j % args.eval_interval == 0):

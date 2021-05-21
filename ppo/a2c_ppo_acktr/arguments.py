@@ -6,7 +6,14 @@ import torch
 def get_args():
     parser = argparse.ArgumentParser(description='RL')
     parser.add_argument(
-        '--algo', default='a2c', help='algorithm to use: a2c | ppo | acktr')
+        '--algo', default='ppo', help='algorithm to use: a2c | ppo | acktr')
+    parser.add_argument(
+        '--eta-optimality',
+        action='store_true',
+        default=False,
+        help='use eta-optimality based sampling')
+    parser.add_argument(
+        '--gamma-eta', type=float, default=1., help='control future states sampling')
     parser.add_argument(
         '--gail',
         action='store_true',
@@ -123,7 +130,7 @@ def get_args():
         help='environment to train on (default: PongNoFrameskip-v4)')
     parser.add_argument(
         '--log-dir',
-        default='/tmp/gym/',
+        default='./logs/',
         help='directory to save agent logs (default: /tmp/gym)')
     parser.add_argument(
         '--save-dir',
