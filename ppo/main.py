@@ -90,7 +90,16 @@ def main():
             shuffle=True,
             drop_last=drop_last)
 
-    logger.configure(dir=args.save_dir)
+    if args.eta_optimality:
+        save_path = os.path.join(args.save_dir, args.algo + '_eta_{}'.format(time.time()))
+    else:
+        save_path = os.path.join(args.save_dir, args.algo + '_{}'.format(time.time()))
+    try:
+        os.makedirs(save_path)
+    except OSError:
+        pass
+
+    logger.configure(dir=save_path)
 
     stats = dict()
 
@@ -105,15 +114,6 @@ def main():
     rollouts = RolloutStorage(args.num_steps, args.num_processes,
                               envs.observation_space.shape, envs.action_space,
                               actor_critic.recurrent_hidden_state_size, args.eta_optimality, args.gamma_eta)
-
-    if args.eta_optimality:
-        save_path = os.path.join(args.save_dir, args.algo + '_eta_{}'.format(time.time()))
-    else:
-        save_path = os.path.join(args.save_dir, args.algo + '_{}'.format(time.time()))
-    try:
-        os.makedirs(save_path)
-    except OSError:
-        pass
 
     obs = envs.reset()
     rollouts.obs[0].copy_(obs)
