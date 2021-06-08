@@ -85,3 +85,46 @@ class MeganBatchSampler:
             return ([min(e + np.random.poisson(self.m), self.num_steps - 1) for e in indices] for indices in self.sampler)
         else:
             raise NotImplementedError
+
+
+def sample_eta_gamma(strategy_eta, m_eta, strategy_gamma, m_gamma, boundary):
+    assert strategy_eta in ['uniform', 'geometric', 'poisson']
+    assert strategy_gamma in ['uniform', 'geometric', 'poisson']
+    eta = None
+    # First sample eta
+    if strategy_eta == 'uniform':
+        eta = np.random.randint(boundary)
+    if strategy_eta == 'geometric':
+        eta = min(np.random.geometric(m_eta), boundary)
+    if strategy_eta == 'poisson':
+        eta = min(np.random.poisson(m_eta), boundary)
+
+    # Then sample gamma
+    if strategy_gamma == 'uniform':
+        return eta + np.random.randint(boundary - eta)
+    if strategy_eta == 'geometric':
+        return eta + min(np.random.geometric(m_gamma), boundary - eta)
+    if strategy_eta == 'poisson':
+        return eta + min(np.random.poisson(m_gamma), boundary - eta)
+
+class MeganBisSampler:
+    def __init__(self, sampler, num_steps, episode_len, strategy_eta='uniform', m_eta=25, strategy_gamma='uniform', m_gamma=25):
+        self.sampler = sampler
+        self.num_steps = num_steps
+        self.episode_max_len = episode_len
+        self.strategy_eta = strategy_eta
+        self.m_eta = m_eta
+        self.strategy_gamma = strategy_gamma
+        self.m_gamma = m_gamma
+
+        self.len_per_episode = [min((i + 1) * self.episode_max_len, self.num_steps) - i * self.episode_max_len
+                                for i in range(self.num_steps // self.episode_max_len + 1)]
+        # stop = 1
+
+    def __iter__(self):
+        # return ([min(e * self.episode_max_len + np.random.randint(self.len_per_episode[e]), self.num_steps - 1) for e in indices]
+        #         for indices in self.sampler)
+        return ([min(e * self.episode_max_len + sample_eta_gamma(self.strategy_eta, self.m_eta, self.strategy_gamma, self.m_gamma,
+                                                       boundary=self.len_per_episode[e]), self.num_steps - 1) for e in indices]
+                for indices in self.sampler)
+

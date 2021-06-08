@@ -1,4 +1,5 @@
 import argparse
+import numpy as np
 
 import torch
 
@@ -12,8 +13,10 @@ def get_args():
         action='store_true',
         default=False,
         help='use eta-optimality based sampling')
-    parser.add_argument(
-        '--gamma-eta', type=float, default=1., help='control future states sampling')
+    parser.add_argument('--strategy-eta', default='uniform', help='')
+    parser.add_argument('--m-eta', type=int, default=10, help='')
+    parser.add_argument('--strategy-gamma', default='uniform', help='')
+    parser.add_argument('--m-gamma', type=int, default=10, help='')
     parser.add_argument(
         '--gail',
         action='store_true',
@@ -73,7 +76,7 @@ def get_args():
         default=0.5,
         help='max norm of gradients (default: 0.5)')
     parser.add_argument(
-        '--seed', type=int, default=1, help='random seed (default: 1)')
+        '--seed', type=int, default=np.random.randint(1e6), help='random seed (default: 1)')
     parser.add_argument(
         '--cuda-deterministic',
         action='store_true',
@@ -82,12 +85,12 @@ def get_args():
     parser.add_argument(
         '--num-processes',
         type=int,
-        default=16,
+        default=1,
         help='how many training CPU processes to use (default: 16)')
     parser.add_argument(
         '--num-steps',
         type=int,
-        default=5,
+        default=2048,
         help='number of forward steps in A2C (default: 5)')
     parser.add_argument(
         '--ppo-epoch',

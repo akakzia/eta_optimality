@@ -113,7 +113,8 @@ def main():
 
     rollouts = RolloutStorage(args.num_steps, args.num_processes,
                               envs.observation_space.shape, envs.action_space,
-                              actor_critic.recurrent_hidden_state_size, args.eta_optimality, args.gamma_eta)
+                              actor_critic.recurrent_hidden_state_size, args.eta_optimality,
+                              args.strategy_eta, args.strategy_gamma, args.m_eta, args.m_gamma)
 
     obs = envs.reset()
     rollouts.obs[0].copy_(obs)

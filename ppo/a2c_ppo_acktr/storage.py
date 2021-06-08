@@ -1,6 +1,6 @@
 import torch
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
-from a2c_ppo_acktr.utils import MeganBatchSampler
+from a2c_ppo_acktr.utils import MeganBatchSampler, MeganBisSampler
 import numpy as np
 
 
@@ -10,9 +10,12 @@ def _flatten_helper(T, N, _tensor):
 
 class RolloutStorage(object):
     def __init__(self, num_steps, num_processes, obs_shape, action_space,
-                 recurrent_hidden_state_size, eta_optimality=False, gamma_eta=1.):
+                 recurrent_hidden_state_size, eta_optimality=False, strategy_eta='uniform', strategy_gamma='uniform', m_eta=10, m_gamma=10):
         self.use_eta_optimality = eta_optimality
-        self.gamma_eta = gamma_eta
+        self.strategy_eta = strategy_eta
+        self.strategy_gamma = strategy_gamma
+        self.m_eta = m_eta
+        self.m_gamma = m_gamma
         self.obs = torch.zeros(num_steps + 1, num_processes, *obs_shape)
         self.recurrent_hidden_states = torch.zeros(
             num_steps + 1, num_processes, recurrent_hidden_state_size)
@@ -123,13 +126,24 @@ class RolloutStorage(object):
                 "".format(num_processes, num_steps, num_processes * num_steps,
                           num_mini_batch))
             mini_batch_size = batch_size // num_mini_batch
-        # Random sampling
-        sampler = BatchSampler(
-            SubsetRandomSampler(range(batch_size)),
-            mini_batch_size,
-            drop_last=True)
         if self.use_eta_optimality:
-            sampler = MeganBatchSampler(sampler, self.num_steps, episode_len=1000)
+            # MEGAN sampling
+            episode_sampler = BatchSampler(
+                SubsetRandomSampler(np.random.randint(0, 3, size=batch_size)),
+                mini_batch_size,
+                drop_last=True)
+            sampler = MeganBisSampler(episode_sampler, self.num_steps, episode_len=1000,
+                                      strategy_eta=self.strategy_eta, m_eta=self.m_eta,
+                                      strategy_gamma=self.strategy_gamma, m_gamma=self.m_gamma)
+        # Random sampling
+        else:
+            sampler = BatchSampler(
+                SubsetRandomSampler(range(batch_size)),
+                mini_batch_size,
+                drop_last=True)
+
+        # if self.use_eta_optimality:
+        #     sampler = MeganBatchSampler(sampler, self.num_steps, episode_len=1000)
         for indices in sampler:
             obs_batch = self.obs[:-1].view(-1, *self.obs.size()[2:])[indices]
             recurrent_hidden_states_batch = self.recurrent_hidden_states[:-1].view(
