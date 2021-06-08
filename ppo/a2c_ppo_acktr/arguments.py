@@ -16,7 +16,7 @@ def get_args():
     parser.add_argument('--strategy-eta', default='uniform', help='')
     parser.add_argument('--m-eta', type=int, default=10, help='')
     parser.add_argument('--strategy-gamma', default='poisson', help='')
-    parser.add_argument('--m-gamma', type=int, default=10, help='')
+    parser.add_argument('--m-gamma', type=float, default=10., help='')
     parser.add_argument(
         '--gail',
         action='store_true',
