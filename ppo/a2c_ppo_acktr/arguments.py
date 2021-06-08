@@ -15,7 +15,7 @@ def get_args():
         help='use eta-optimality based sampling')
     parser.add_argument('--strategy-eta', default='uniform', help='')
     parser.add_argument('--m-eta', type=int, default=10, help='')
-    parser.add_argument('--strategy-gamma', default='uniform', help='')
+    parser.add_argument('--strategy-gamma', default='poisson', help='')
     parser.add_argument('--m-gamma', type=int, default=10, help='')
     parser.add_argument(
         '--gail',
@@ -129,7 +129,7 @@ def get_args():
         help='number of environment steps to train (default: 10e6)')
     parser.add_argument(
         '--env-name',
-        default='Hopper-v2',
+        default='HalfCheetah-v2',
         help='environment to train on (default: PongNoFrameskip-v4)')
     parser.add_argument(
         '--log-dir',

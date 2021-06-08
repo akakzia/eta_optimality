@@ -102,9 +102,9 @@ def sample_eta_gamma(strategy_eta, m_eta, strategy_gamma, m_gamma, boundary):
     # Then sample gamma
     if strategy_gamma == 'uniform':
         return eta + np.random.randint(boundary - eta)
-    if strategy_eta == 'geometric':
+    if strategy_gamma == 'geometric':
         return eta + min(np.random.geometric(m_gamma), boundary - eta)
-    if strategy_eta == 'poisson':
+    if strategy_gamma == 'poisson':
         return eta + min(np.random.poisson(m_gamma), boundary - eta)
 
 class MeganBisSampler:
