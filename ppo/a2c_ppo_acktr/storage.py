@@ -1,5 +1,6 @@
 import torch
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
+from a2c_ppo_acktr.utils import MeganBatchSampler
 import numpy as np
 
 
@@ -127,10 +128,9 @@ class RolloutStorage(object):
             SubsetRandomSampler(range(batch_size)),
             mini_batch_size,
             drop_last=True)
+        if self.use_eta_optimality:
+            sampler = MeganBatchSampler(sampler, self.num_steps, episode_len=1000)
         for indices in sampler:
-            if self.use_eta_optimality:
-                indices = [min(e + np.random.randint(1000 - e % 1000), self.num_steps - 1) for e in indices]
-                # indices = [e - np.random.randint(max(e % 1000, 1)) for e in indices]
             obs_batch = self.obs[:-1].view(-1, *self.obs.size()[2:])[indices]
             recurrent_hidden_states_batch = self.recurrent_hidden_states[:-1].view(
                 -1, self.recurrent_hidden_states.size(-1))[indices]
