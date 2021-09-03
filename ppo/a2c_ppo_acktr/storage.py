@@ -75,19 +75,43 @@ class RolloutStorage(object):
                         use_gae,
                         gamma,
                         gae_lambda,
-                        use_proper_time_limits=True):
+                        use_proper_time_limits=True,
+                        eta=None):
         if use_proper_time_limits:
             if use_gae:
-                self.value_preds[-1] = next_value
-                gae = 0
-                for step in reversed(range(self.rewards.size(0))):
-                    delta = self.rewards[step] + gamma * self.value_preds[
-                        step + 1] * self.masks[step +
-                                               1] - self.value_preds[step]
-                    gae = delta + gamma * gae_lambda * self.masks[step +
-                                                                  1] * gae
-                    gae = gae * self.bad_masks[step + 1]
-                    self.returns[step] = gae + self.value_preds[step]
+                if self.use_eta_optimality:
+                    self.value_preds[-1] = next_value
+                    # Prepare lambda, eta and gamma vectors
+                    gae_lambda_pow = np.array([gae_lambda**i for i in range(1001)])
+                    eta_pow = np.array([eta**i for i in range(1001)])
+                    gamma_pow = np.array([gamma**i for i in range(1001)])
+                    # Calculate delta and phi
+                    delta = np.zeros(self.rewards.size(0) - 1)
+                    phi = np.zeros(self.rewards.size(0) - 1)
+                    for step in reversed(range(self.rewards.size(0) - 1)):
+                        delta[step] = self.rewards[step] + (eta + gamma) * self.value_preds[step + 1] * self.masks[step + 1] \
+                                       - eta * gamma * self.value_preds[step + 2] * self.masks[step + 1] * self.masks[step + 2]\
+                                       - self.value_preds[step]
+                        running_eta = eta_pow[:(step%1000) + 1]
+                        running_gamma = np.flip(gamma_pow[:(step%1000) + 1])
+                        pascal_triangle_row = np.dot(running_eta, running_gamma)
+                        phi[step] = gae_lambda_pow[(step%1000) + 1] * pascal_triangle_row
+                    for step in reversed(range(self.rewards.size(0) - 1)):
+                        k_i = ((step // 1000) + 1) * 1000
+                        gae = np.dot(phi[:min(self.num_steps - 1, k_i) - step], delta[step:min(self.num_steps - 1, k_i)])
+                        gae = gae * self.bad_masks[step + 1]
+                        self.returns[step] = gae + self.value_preds[step]
+                else:
+                    self.value_preds[-1] = next_value
+                    gae = 0
+                    for step in reversed(range(self.rewards.size(0))):
+                        delta = self.rewards[step] + gamma * self.value_preds[
+                            step + 1] * self.masks[step +
+                                                   1] - self.value_preds[step]
+                        gae = delta + gamma * gae_lambda * self.masks[step +
+                                                                      1] * gae
+                        gae = gae * self.bad_masks[step + 1]
+                        self.returns[step] = gae + self.value_preds[step]
             else:
                 self.returns[-1] = next_value
                 for step in reversed(range(self.rewards.size(0))):
@@ -126,7 +150,7 @@ class RolloutStorage(object):
                 "".format(num_processes, num_steps, num_processes * num_steps,
                           num_mini_batch))
             mini_batch_size = batch_size // num_mini_batch
-        if self.use_eta_optimality:
+        if 0 == 1:
             # MEGAN sampling
             episode_sampler = BatchSampler(
                 SubsetRandomSampler(np.random.randint(0, 3, size=batch_size)),

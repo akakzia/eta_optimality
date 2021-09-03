@@ -11,12 +11,12 @@ def get_args():
     parser.add_argument(
         '--eta-optimality',
         action='store_true',
-        default=False,
+        default=True,
         help='use eta-optimality based sampling')
     parser.add_argument('--strategy-eta', default='uniform', help='')
-    parser.add_argument('--m-eta', type=int, default=10, help='')
-    parser.add_argument('--strategy-gamma', default='poisson', help='')
-    parser.add_argument('--m-gamma', type=float, default=10., help='')
+    parser.add_argument('--m-eta', type=float, default=1., help='')
+    parser.add_argument('--strategy-gamma', default='uniform', help='')
+    parser.add_argument('--m-gamma', type=float, default=0.01, help='')
     parser.add_argument(
         '--gail',
         action='store_true',
@@ -34,7 +34,7 @@ def get_args():
     parser.add_argument(
         '--gail-epoch', type=int, default=5, help='gail epochs (default: 5)')
     parser.add_argument(
-        '--lr', type=float, default=7e-4, help='learning rate (default: 7e-4)')
+        '--lr', type=float, default=3e-4, help='learning rate (default: 7e-4)')
     parser.add_argument(
         '--eps',
         type=float,
@@ -53,7 +53,7 @@ def get_args():
     parser.add_argument(
         '--use-gae',
         action='store_true',
-        default=False,
+        default=True,
         help='use generalized advantage estimation')
     parser.add_argument(
         '--gae-lambda',
@@ -63,7 +63,7 @@ def get_args():
     parser.add_argument(
         '--entropy-coef',
         type=float,
-        default=0.01,
+        default=0.0,
         help='entropy term coefficient (default: 0.01)')
     parser.add_argument(
         '--value-loss-coef',
@@ -95,7 +95,7 @@ def get_args():
     parser.add_argument(
         '--ppo-epoch',
         type=int,
-        default=4,
+        default=10,
         help='number of ppo epochs (default: 4)')
     parser.add_argument(
         '--num-mini-batch',
@@ -110,7 +110,7 @@ def get_args():
     parser.add_argument(
         '--log-interval',
         type=int,
-        default=10,
+        default=50,
         help='log interval, one log per n updates (default: 10)')
     parser.add_argument(
         '--save-interval',
@@ -125,7 +125,7 @@ def get_args():
     parser.add_argument(
         '--num-env-steps',
         type=int,
-        default=10e6,
+        default=1e6,
         help='number of environment steps to train (default: 10e6)')
     parser.add_argument(
         '--env-name',
@@ -147,7 +147,7 @@ def get_args():
     parser.add_argument(
         '--use-proper-time-limits',
         action='store_true',
-        default=False,
+        default=True,
         help='compute returns taking into account time limits')
     parser.add_argument(
         '--recurrent-policy',
@@ -157,7 +157,7 @@ def get_args():
     parser.add_argument(
         '--use-linear-lr-decay',
         action='store_true',
-        default=False,
+        default=True,
         help='use a linear schedule on the learning rate')
     args = parser.parse_args()
 

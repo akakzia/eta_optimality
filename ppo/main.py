@@ -178,8 +178,8 @@ def main():
                     rollouts.obs[step], rollouts.actions[step], args.gamma,
                     rollouts.masks[step])
 
-        rollouts.compute_returns(next_value, args.use_gae, args.gamma,
-                                 args.gae_lambda, args.use_proper_time_limits)
+        rollouts.compute_returns(next_value, args.use_gae, args.m_gamma,
+                                 args.gae_lambda, args.use_proper_time_limits, eta=args.m_eta)
 
         value_loss, action_loss, dist_entropy = agent.update(rollouts)
 
