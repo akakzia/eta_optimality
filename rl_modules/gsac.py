@@ -2,14 +2,15 @@ import os
 import torch
 import torch.nn.functional as F
 from torch.optim import Adam
+from mpi_modules.mpi_utils import sync_networks, sync_grads
 from utils import soft_update, hard_update
-from model import GaussianPolicy, QNetwork, DeterministicPolicy
+from rl_modules.network import GaussianPolicy, QNetwork, DeterministicPolicy
 
 class GSAC(object):
     def __init__(self, num_inputs, action_space, args):
         self.gamma_1 = args.gamma_one
         self.gamma_2 = args.gamma_two
-        self.update_frequency = 10
+        self.update_frequency = args.update_frequency
         self.tau = args.tau
         self.alpha = args.alpha
 
@@ -21,12 +22,14 @@ class GSAC(object):
 
         # Defining first critic for gamma 1
         self.critic_1 = QNetwork(num_inputs, action_space.shape[0], args.hidden_size).to(device=self.device)
+        sync_networks(self.critic_1)
         self.critic_1_optim = Adam(self.critic_1.parameters(), lr= args.lr)
 
         self.critic_1_target = QNetwork(num_inputs, action_space.shape[0], args.hidden_size).to(self.device)
 
         # Defining second critic for gamma 2
         self.critic_2 = QNetwork(num_inputs, action_space.shape[0], args.hidden_size).to(device=self.device)
+        sync_networks(self.critic_2)
         self.critic_2_optim = Adam(self.critic_2.parameters(), lr=args.lr)
 
         self.critic_2_target = QNetwork(num_inputs, action_space.shape[0], args.hidden_size).to(self.device)
@@ -49,6 +52,8 @@ class GSAC(object):
             self.automatic_entropy_tuning = False
             self.policy = DeterministicPolicy(num_inputs, action_space.shape[0], args.hidden_size, action_space).to(self.device)
             self.policy_optim = Adam(self.policy.parameters(), lr=args.lr)
+
+        sync_networks(self.policy)
 
     def select_action(self, state, evaluate=False):
         state = torch.FloatTensor(state).to(self.device).unsqueeze(0)
@@ -81,6 +86,7 @@ class GSAC(object):
             qf_1_loss = qf1_1_loss + qf2_1_loss
             self.critic_1_optim.zero_grad()
             qf_1_loss.backward()
+            sync_grads(self.critic_1)
             self.critic_1_optim.step()
 
             soft_update(self.critic_1_target, self.critic_1, self.tau)
@@ -103,6 +109,7 @@ class GSAC(object):
 
         self.critic_2_optim.zero_grad()
         qf_2_loss.backward()
+        sync_grads(self.critic_2)
         self.critic_2_optim.step()
 
         if updates % self.target_update_interval == 0:
@@ -117,6 +124,7 @@ class GSAC(object):
 
         self.policy_optim.zero_grad()
         policy_loss.backward()
+        sync_grads(self.policy)
         self.policy_optim.step()
 
         if self.automatic_entropy_tuning:

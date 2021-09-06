@@ -3,9 +3,9 @@ from mpi4py import MPI
 import torch
 import torch.nn.functional as F
 from torch.optim import Adam
-from mpi_utils import sync_networks, sync_grads
+from mpi_modules.mpi_utils import sync_networks, sync_grads
 from utils import soft_update, hard_update
-from model import GaussianPolicy, QNetwork, DeterministicPolicy
+from rl_modules.network import GaussianPolicy, QNetwork, DeterministicPolicy
 
 
 class SAC(object):
@@ -119,14 +119,9 @@ class SAC(object):
         return qf1_loss.item(), qf2_loss.item(), policy_loss.item(), alpha_loss.item(), alpha_tlogs.item()
 
     # Save model parameters
-    def save_model(self, env_name, suffix="", actor_path=None, critic_path=None):
-        if not os.path.exists('models/'):
-            os.makedirs('models/')
-
-        if actor_path is None:
-            actor_path = "models/sac_actor_{}_{}".format(env_name, suffix)
-        if critic_path is None:
-            critic_path = "models/sac_critic_{}_{}".format(env_name, suffix)
+    def save_model(self, path):
+        actor_path = os.path.join(path, 'actor')
+        critic_path = os.path.join(path, 'critic')
         print('Saving models to {} and {}'.format(actor_path, critic_path))
         torch.save(self.policy.state_dict(), actor_path)
         torch.save(self.critic.state_dict(), critic_path)
