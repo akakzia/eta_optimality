@@ -1,5 +1,5 @@
 import os
-
+from time import sleep
 
 def mkdir_p(dir):
     '''make a directory (dir) if it doesn't exist'''
@@ -42,6 +42,7 @@ for i in range(nb_seeds):
                 fh.writelines("export CPATH=$CPATH:/gpfslocalsup/spack_soft/mesa/18.3.6/gcc-9.1.0-bikg6w3g2be2otzrmyy43zddre4jahme/include\n")
                 fh.writelines("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/linkhome/rech/genisi01/uqy56ga/.mujoco/mujoco200/bin\n")
 
-                fh.writelines("srun python -u -B main.py --agent {} --env-name {} --save-dir 'experiments' 2>&1".format(agent, env))
+                fh.writelines("srun python -u -B main.py --algo {} --env-name {} --save-dir 'experiments' 2>&1".format(agent, env))
 
             os.system("sbatch %s" % job_file)
+            sleep(1)
