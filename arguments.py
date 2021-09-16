@@ -23,15 +23,15 @@ def get_args():
     parser.add_argument('--alpha', type=float, default=0.2, metavar='G',
                         help='Temperature parameter α determines the relative importance of the entropy\
                                 term against the reward (default: 0.2)')
-    parser.add_argument('--automatic_entropy_tuning', type=bool, default=False, metavar='G',
+    parser.add_argument('--automatic-entropy-tuning', type=bool, default=False, metavar='G',
                         help='Automaically adjust α (default: False)')
     parser.add_argument('--seed', type=int, default=np.random.randint(1e5), metavar='N',
                         help='random seed (default: 123456)')
-    parser.add_argument('--batch_size', type=int, default=256, metavar='N',
+    parser.add_argument('--batch-size', type=int, default=256, metavar='N',
                         help='batch size (default: 256)')
-    parser.add_argument('--num_steps', type=int, default=1000001, metavar='N',
+    parser.add_argument('--num-steps', type=int, default=1000001, metavar='N',
                         help='maximum number of steps (default: 1000000)')
-    parser.add_argument('--hidden_size', type=int, default=256, metavar='N',
+    parser.add_argument('--hidden-size', type=int, default=256, metavar='N',
                         help='hidden size (default: 256)')
 
     parser.add_argument('--gamma-one', type=float, default=0.99, metavar='G',
@@ -42,7 +42,7 @@ def get_args():
     parser.add_argument('--update-frequency', type=int, default=2, metavar='N',
                         help='How many time to update critic 1 before 2')
 
-    parser.add_argument('--updates_per_step', type=int, default=1, metavar='N',
+    parser.add_argument('--updates-per-step', type=int, default=1, metavar='N',
                         help='model updates per simulator step (default: 1)')
     parser.add_argument('--update-every', type=int, default=1, metavar='N',
                         help='after how many environment steps do the update')
@@ -50,9 +50,9 @@ def get_args():
     parser.add_argument('--max-episode-steps', type=int, default=1000, metavar='N',
                         help='Number of max environment steps per episode (default: 1000)')
 
-    parser.add_argument('--target_update_interval', type=int, default=1, metavar='N',
+    parser.add_argument('--target-update-interval', type=int, default=1, metavar='N',
                         help='Value target update per no. of updates per step (default: 1)')
-    parser.add_argument('--replay_size', type=int, default=100000, metavar='N',
+    parser.add_argument('--replay-size', type=int, default=100000, metavar='N',
                         help='size of replay buffer (default: 100000)')
     parser.add_argument('--cuda', action="store_true",
                         help='run on CUDA (default: False)')

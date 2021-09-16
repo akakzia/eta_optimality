@@ -20,8 +20,8 @@ def init_storage(args):
     if not os.path.exists(args.save_dir):
         os.mkdir(args.save_dir)
     # path to save the model
-    logdir = os.path.join(args.save_dir, '{}_{}_{}'.format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), args.algo,
-                                                           args.env_name))
+    logdir = os.path.join(args.save_dir, '{}_{}_{}_{}'.format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), args.algo,
+                                                           args.env_name, args.seed))
     # if args.algo == 'SAC':
     #     logdir += '_{}'.format(args.gamma)
     # else:
