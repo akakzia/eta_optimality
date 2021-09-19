@@ -58,10 +58,10 @@ def main():
 
         # while not done:
         while episode_steps < args.max_episode_steps:
-            # if args.start_steps > total_numsteps:
-            #     action = env.action_space.sample()  # Sample random action
-            # else:
-            value, action, action_log_prob = agent.select_action(state)
+            if args.start_steps > total_numsteps:
+                action = env.action_space.sample()  # Sample random action
+            else:
+                value, action, action_log_prob = agent.select_action(state)
 
             if len(memory) > args.batch_size and episode_steps % args.update_every == 0:
                 # Number of updates per step in environment

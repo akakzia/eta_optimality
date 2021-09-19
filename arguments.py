@@ -29,7 +29,7 @@ def get_args():
                         help='random seed (default: 123456)')
     parser.add_argument('--batch-size', type=int, default=256, metavar='N',
                         help='batch size (default: 256)')
-    parser.add_argument('--num-steps', type=int, default=1000001, metavar='N',
+    parser.add_argument('--num-steps', type=int, default=1500001, metavar='N',
                         help='maximum number of steps (default: 1000000)')
     parser.add_argument('--hidden-size', type=int, default=256, metavar='N',
                         help='hidden size (default: 256)')
@@ -39,7 +39,7 @@ def get_args():
     parser.add_argument('--gamma-two', type=float, default=0.99, metavar='G',
                         help='discount factor for reward (default: 0.99)')
 
-    parser.add_argument('--update-frequency', type=int, default=2, metavar='N',
+    parser.add_argument('--update-frequency', type=int, default=1, metavar='N',
                         help='How many time to update critic 1 before 2')
 
     parser.add_argument('--updates-per-step', type=int, default=1, metavar='N',
@@ -49,6 +49,9 @@ def get_args():
 
     parser.add_argument('--max-episode-steps', type=int, default=1000, metavar='N',
                         help='Number of max environment steps per episode (default: 1000)')
+
+    parser.add_argument('--start-steps', type=int, default=10000, metavar='N',
+                        help='Number of episodes with random actions (default: 10000)')
 
     parser.add_argument('--target-update-interval', type=int, default=1, metavar='N',
                         help='Value target update per no. of updates per step (default: 1)')
